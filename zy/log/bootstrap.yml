@@ -1,0 +1,26 @@
+server:
+  port: 30099
+spring:
+  application:
+    name: futong-zy-log
+  cloud:
+    config:
+      discovery:
+        serviceId: futong-public-config
+        enabled: true
+      name: application-common,application-mysql,application-mybatis-plus,application-redis,application-xxlJob,application-rabbitmq
+      fail-fast: true
+    consul:
+      discovery:
+        instance-id: ${spring.application.name}:${server.port}
+        prefer-ip-address: false #true以IP地址注册到服务中心，相互注册使用IP地址,false服务名
+        health-check-interval: 10s
+        hostname: ${spring.application.name}
+#        ip-address: 192.168.7.97
+        service-name: ${spring.application.name}
+        enabled: true
+      host: ftcloud-consul
+      port: 8500
+  aop:
+    auto: true
+

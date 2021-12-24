@@ -1,0 +1,24 @@
+# 注册服务的端口
+server:
+  port: 6000
+#配置当前服务的名称
+spring:
+  application:
+    name: futong-cm-config #配置服务名称
+  profiles:
+    active: native #设置为本地启动的方式，而不是通过git
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations: classpath:/config/pro  # 配置文件所在目录，classpath（类路径）和（系统文件路径） file两种
+    consul:
+      discovery:
+        instance-id: ${spring.application.name}:${server.port}
+        prefer-ip-address: true
+        health-check-interval: 10s
+        hostname: ${spring.application.name}
+        service-name: ${spring.application.name}
+        enabled: true
+      host: consul.service.ftcloud
+      port: 8500

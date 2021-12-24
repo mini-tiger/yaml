@@ -1,0 +1,279 @@
+version: "3.7"
+services:
+  futong-yw-monitor-center:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm1
+    environment:
+    - product=true
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-monitor-center:v1.6.5'
+    ports:
+    - 8001:8001
+    volumes:
+    - /etc/prometheus/alertmanager:/home/monitor/alertmanager:rw,Z
+    - /etc/ftcloud/yw/futong-yw-monitor-center/PushConfig.json:/home/monitor/PushConfig.json
+    - /etc/ftcloud/yw/futong-yw-monitor-center/config.json:/home/monitor/config.json
+    - /etc/ftcloud/yw/futong-yw-monitor-center/packages:/home/monitor/packages
+    - /var/log/ftcloud/yw/futong-yw-monitor-center:/home/monitor/logs:rw,Z
+  futong-yw-analysis:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-analysis:v1.6.5'
+    ports:
+    - 13008:13008
+    volumes:
+    - /etc/ftcloud/yw/futong-yw-analysis/config.yaml:/home/monitor/config.yaml
+    - /var/log/ftcloud/yw/futong-yw-analysis:/home/monitor/logs:rw,Z
+  futong-yw-ansible-service:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - MYSQL_HOST=ftcloud-mysql
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=FuTongde1gesjk
+    - MYSQL_PORT=3306
+    - MYSQL_DATABASE=itgo_devops
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-ansible-service:v1.6.5'
+    ports:
+    - 14001:14001
+    - "21:21"
+    - 4500-4550:4500-4550
+    restart: unless-stopped
+    volumes:
+    - /etc/ftcloud/yw/futong-yw-ansible-service:/etc/ansible
+    - /var/log/ftcloud/yw/futong-yw-ansible-service:/home/itgo-devops/logs
+    - /etc/localtime:/etc/localtime
+    - /data/itgo/ftp:/home/itgo-devops/ftp
+  futong-yw-blueprint:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - BROKER_URL=amqp://user:password@ftcloud-rabbitmq:5672/my_vhost
+    - SBZY_URL=amqp://user:password@ftcloud-rabbitmq:5672/
+    - ACCESS_URL=http://futong-yy-operation:5013/access/getById
+    - QUOTA_URL=http://futong-yy-operation:5013/org/quota/getdetail
+    - HEALTHY_URL=http://futong-yw-blueprint:11001/health/
+    - CONSUL_HOST=ftcloud-consul
+    - MYSQL_HOST=ftcloud-mysql
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=FuTongde1gesjk
+    - OPENSTACK_AUTH_URL=http://172.16.60.10:5000/v3/
+    - OPENSTACK_PROJECT_NAME=amdin
+    - OPENSTACK_USERNAME=admin
+    - OPENSTACK_PASSWORD=7757a24e9fa44bf8
+    - OPENSTACK_REGION_NAME=RegionOne
+    - OPENSTACK_CLOUD_TYPE=openstack
+    - OPENSTACK_ACCOUNT=futong-test
+    - OPENSTACK_TENANT_NAME=admin
+    - INSTANCES_URL=http://futong-zy-compute:30011
+    - RDS_URL=http://futong-zy-rds:30015
+    - NETWORK_URL=http://futong-zy-network:30014
+    - USER_URL=http://futong-yy-operation:5013
+    - SLB_URL=http://futong-zy-elb:30019
+    - MINIO_HOST=ftcloud-minio:9000
+    - MINIO_USER=admin
+    - MINIO_PASSWORD=futongfutong
+    - ENVIRONMENT=CMP
+    - VMWARE_URL=http://futong-zy-virtualization:30022
+    - VM_URL=http://futong-zy-hprivate:30050
+    - BASIC_USER_URL=http://futong-yy-ucenter:5012
+    - OSS_URL=http://futong-zy-objectstorage:30025
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-blueprint:v1.6.5'
+    ports:
+    - 11001:11001
+    - 11080:11080
+    volumes:
+    - /var/log/ftcloud/yw/futong-yw-blueprint:/var/log/ftcloud/yw:rw,Z
+    - /data/blueprint/:/root/airflow_data/
+  futong-yw-catalog:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - BROKER_URL=redis://ftcloud-redis:6379/0
+    - MYSQL_HOST=ftcloud-mysql
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=FuTongde1gesjk
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-catalog:v1.6.5'
+    ports:
+    - 12001:12001
+    volumes:
+    - /var/log/ftcloud/yw/futong-yw-catalog:/var/log/ftcloud/yw/catalog/:rw,Z
+  futong-yw-injection-service:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-injection-service:v1.6.5'
+    ports:
+    - 14002:14002
+    volumes:
+    - /etc/ftcloud/yw/futong-yw-injection-service/application.yml:/opt/application.yml
+    - /var/log/ftcloud/yw/futong-yw-injection-service:/home/itgo-devops/cloud/devops/log
+    - /etc/localtime:/etc/localtime
+  futong-yw-k8s:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      APP_NAME: ftk8s-resource
+      APP_RUN_MODE: release
+      CERT_CA_PEM: ftk8s-base/cert/ca.pem
+      CERT_CLIENT_KEY: ftk8s-base/cert/client.key
+      CERT_CLIENT_PEM: ftk8s-base/cert/client.pem
+      CERT_SERVER_KEY: ftk8s-base/cert/server.key
+      CERT_SERVER_NAME: testca
+      CERT_SERVER_PEM: ftk8s-base/cert/server.pem
+      CONSUL_ADDRESS: ftcloud-consul:8500
+      CONSUL_REGISTER_ADDRESS: futong-yw-k8s
+      CONSUL_REGISTER_ID: futong-yw-k8s
+      CONSUL_REGISTER_NAME: futong-yw-k8s
+      CONSUL_REGISTER_PORT: "32003"
+      CONSUL_REGISTER_ROUTE_PATH: /ping/ftk8s-resource
+      CONSUL_REGISTER_TAG: futong-yw-k8s
+      FLAG_SETTING_FROM_ENV: exist
+      GRPC_ADDR: 0.0.0.0:32013
+      GRPC_URL_SYSTEM: 127.0.0.1:32012
+      HTTP_IP: 0.0.0.0
+      HTTP_PORT: "32003"
+      LOG_FILE: logs/ftk8s-resource.log
+      LOG_LEVEL: debug
+      MYSQL_DATABASE: ftk8s
+      MYSQL_HOST: ftcloud-mysql
+      MYSQL_MAX_IDLE_CONNS: "100"
+      MYSQL_MAX_OPEN_CONNS: "1000"
+      MYSQL_PASSWORD: FuTongde1gesjk
+      MYSQL_PORT: "3306"
+      MYSQL_TIMEOUT: 1m30s
+      MYSQL_USERNAME: root
+      OPERATING_PLATFORM: cmp
+    image: '172.16.71.10:15005/k8s/ftk8s-resource:v1.6.5'
+    volumes:
+    - /var/log/ftcloud/yw/futong-yw-k8s:/ftcloud/k8s/logs
+  futong-yw-kafka:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      FTHC_CHECK_PORT: 9092
+      FTHC_LISTEN_PORT: 15557
+      FTHC_SERVICE_NAME: kafka
+      KAFKA_ADVERTISED_HOST_NAME: futong-yw-kafka
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: futong-yw-zookeeper:2181
+    image: '172.16.71.10:15005/public/kafka:2.13-2.6.0-hc'
+    ports:
+    - 9092:9092
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /data/kafka:/kafka
+  futong-yw-monitor-alarm:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-monitor-alarm:v1.6.5'
+    ports:
+    - 13007:13007
+    volumes:
+    - /etc/prometheus/alertmanager:/etc/prometheus/alertmanager:rw,Z
+    - /etc/ftcloud/yw/futong-yw-monitor-alarm/config.yaml:/home/monitor/config.yaml
+    - /var/log/ftcloud/yw/futong-yw-monitor-alarm:/home/monitor/logs:rw,Z
+  futong-yw-monitor-collect:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - CMDB_RESOURCE_ADDRESS=http://futong-cmdb-scene:10008
+    - PUSHGATEWAY_ADDRESS=http://pushgateway:9091
+    - SECRETPAIR_ADDRESS=http://futong-yy-operation:5013
+    image: '172.16.71.10:15005/cmp/yw/monitor-collect:v1.6.5'
+  futong-yw-monitor-service:
+    deploy:
+      placement:
+        constraints:
+        - node.role == manager
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - CMDB_RESOURCE_ADDRESS=http://futong-cmdb-scene:10008
+    - PUSHGATEWAY_ADDRESS=http://pushgateway:9091
+    - PROMETHEUS_ADDRESS=http://prometheus:9090
+    - THANOS_QUERY=http://thanos-query:19192
+    - MYSQL_HOST=ftcloud-mysql
+    - MYSQL_PORT=3306
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=FuTongde1gesjk
+    - RABBITMQ_HOST=ftcloud-rabbitmq
+    - RABBITMQ_USER=user
+    - RABBITMQ_PASSWORD=password
+    - RABBITMQ_PORT=5672
+    - REDIS_HOST=ftcloud-redis
+    - REDIS_PORT=6379
+    image: '172.16.71.10:15005/cmp/yw/monitor-service:v1.6.5'
+    ports:
+    - 18006:18006
+    volumes:
+    - /var/log/ftcloud/yw/futong-yw-monitor-service:/futong_yw_monitor_server/logs
+    - /etc/prometheus/alertmanager:/futong_yw_monitor_server/alert_rules
+  futong-yw-monitor-web:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-monitor-web:v1.6.5'
+    ports:
+    - 13006:13006
+    volumes:
+    - /etc/ftcloud/yw/futong-yw-monitor-web/config.yaml:/home/monitor/config.yaml:rw,Z
+    - /var/log/ftcloud/yw/futong-yw-monitor-web:/home/monitor/logs/:rw,Z
+  futong-yw-report:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-report:v1.6.5'
+    ports:
+    - 18080:18080
+    volumes:
+    - /data/report:/usr/local/tomcat/reportFiles
+    - /etc/ftcloud/yw/futong-yw-report/server.xml:/usr/local/tomcat/conf/server.xml
+    - /etc/ftcloud/yw/futong-yw-report/application.yml:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/application.yml
+    - /var/log/ftcloud/yw/futong-yw-report:/usr/local/tomcat/logs
+    - /etc/localtime:/etc/localtime
+  futong-yw-vcollection-ali:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yw/futong-yw-vcollection-ali:v1.6.5'
+    volumes:
+    - /etc/ftcloud/yw/futong-yw-vcollection-ali/config.yaml:/home/monitor/config.yaml
+    - /var/log/ftcloud/yw/futong-yw-vcollection-ali:/home/monitor/logs:rw,Z
+  futong-yw-zookeeper:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - FTHC_SERVICE_NAME=zookeeper
+    - FTHC_CHECK_PORT=2181
+    - FTHC_LISTEN_PORT=15556
+    image: '172.16.71.10:15005/public/zookeeper:3.4.13-hc'
+    ports:
+    - 2181:2181

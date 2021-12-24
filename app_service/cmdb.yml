@@ -1,0 +1,178 @@
+version: "3.7"
+services:
+  futong-cmdb-model:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      APP_NAME: cmdb_model
+      APP_RUN_MODE: production
+      CONSUL_ADDRESS: ftcloud-consul:8500
+      CONSUL_REGISTER_ADDRESS: futong-cmdb-model
+      CONSUL_REGISTER_ID: futong-cmdb-model
+      CONSUL_REGISTER_NAME: futong-cmdb-model
+      CONSUL_REGISTER_PORT: 10006
+      CONSUL_REGISTER_ROUTE_PATH: /check/cmdb-model
+      CONSUL_REGISTER_TAG: futong-cmdb-model
+      FLAG_SETTING_FROM_ENV: exist
+      HTTP_IP: 0.0.0.0
+      HTTP_PORT: 10006
+      LOG_FILE: logs/cmdb_model.log
+      LOG_LEVEL: debug
+      MONGO_DB_NAME: cmdb
+      MONGO_MAX_CONN_IDLE_TIME: 5
+      MONGO_MAX_POOL_SIZE: 1000
+      MONGO_PWD: Ft_Mongo_123
+      MONGO_RUN_MODE: replica_set
+      MONGO_URI_REPLICA_SET: mongodb://ftcloud-mongo1:27017,ftcloud-mongo2:27018,ftcloud-mongo3:27019/?replicaSet=myset
+      MONGO_URI_SINGLE: mongodb://mongodb.service.ftcloud:27016/
+      MONGO_USER: root
+      MYSQL_DATABASE: mycat_futong_db
+      MYSQL_HOST: ftcloud-mysql
+      MYSQL_MAX_IDLE_CONNS: 100
+      MYSQL_MAX_OPEN_CONNS: 1000
+      MYSQL_PASSWORD: FuTongde1gesjk
+      MYSQL_PORT: 3306
+      MYSQL_TIMEOUT: 1m30s
+      MYSQL_USER_NAME: root
+      RMQ_EXCHANGE_TYPE_USER_LOG: direct
+      RMQ_EXCHANGE_USER_LOG: CMP_EXCHANGE
+      RMQ_PREFETCH_COUNT_USER_LOG: 1
+      RMQ_QUEUE_USER_LOG: QUEUE_CMP2020_LOGS
+      RMQ_RK_USER_LOG: ""
+      RMQ_URL_USER_LOG: amqp://user:password@ftcloud-rabbitmq:5672/
+    image: '172.16.71.10:15005/cmp/cmdb/futong-cmdb-model:v1.6.5'
+    ports:
+    - 10006:10006
+    volumes:
+    - /var/log/ftcloud/cmdb/cmdb_model/logs:/ftcloud/cmdb/cmdb_model/logs:rw,Z
+  futong-cmdb-resource:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      API_URL_GET_USER_INFO_BY_USER_ID: http://futong-yy-operation:5013/index/selectInfoAllByUserId
+      API_URL_GET_USER_NAME_BY_USER_ID: http://futong-yy-ucenter:5012/user/getUserName
+      APP_NAME: cmdb_resource
+      APP_RUN_MODE: production
+      CONSUL_ADDRESS: ftcloud-consul:8500
+      CONSUL_REGISTER_ADDRESS: futong-cmdb-resource
+      CONSUL_REGISTER_ID: futong-cmdb-resource
+      CONSUL_REGISTER_NAME: futong-cmdb-resource
+      CONSUL_REGISTER_PORT: 10007
+      CONSUL_REGISTER_ROUTE_PATH: /check/cmdb-resource
+      CONSUL_REGISTER_TAG: futong-cmdb-resource
+      FLAG_SETTING_FROM_ENV: exist
+      HTTP_IP: 0.0.0.0
+      HTTP_PORT: 10007
+      LOG_FILE: logs/cmdb_resource.log
+      LOG_LEVEL: debug
+      MONGO_DB_NAME: cmdb
+      MONGO_MAX_CONN_IDLE_TIME: 5
+      MONGO_MAX_POOL_SIZE: 1000
+      MONGO_PWD: Ft_Mongo_123
+      MONGO_RUN_MODE: replica_set
+      MONGO_URI_REPLICA_SET: mongodb://ftcloud-mongo1:27017,ftcloud-mongo2:27018,ftcloud-mongo3:27019/?replicaSet=myset
+      MONGO_URI_SINGLE: mongodb://mongodb.service.ftcloud:27016/
+      MONGO_USER: root
+      MYSQL_DATABASE: mycat_futong_db
+      MYSQL_HOST: ftcloud-mysql
+      MYSQL_MAX_IDLE_CONNS: 100
+      MYSQL_MAX_OPEN_CONNS: 1000
+      MYSQL_PASSWORD: FuTongde1gesjk
+      MYSQL_PORT: 3306
+      MYSQL_TIMEOUT: 1m30s
+      MYSQL_USER_NAME: root
+      RMQ_EXCHANGE_OP_LOG: exchange_cmdb
+      RMQ_EXCHANGE_RES: exchange_cmdb
+      RMQ_EXCHANGE_TYPE_OP_LOG: topic
+      RMQ_EXCHANGE_TYPE_RES: topic
+      RMQ_EXCHANGE_TYPE_USER_LOG: direct
+      RMQ_EXCHANGE_USER_LOG: CMP_EXCHANGE
+      RMQ_PREFETCH_COUNT_OP_LOG: 1
+      RMQ_PREFETCH_COUNT_RES: 1
+      RMQ_PREFETCH_COUNT_USER_LOG: 1
+      RMQ_QUEUE_OP_LOG: queue_cmdb_oplog
+      RMQ_QUEUE_RES: queue_cmdb_resource
+      RMQ_QUEUE_USER_LOG: QUEUE_CMP2020_LOGS
+      RMQ_RK_OP_LOG: cmdb.oplog
+      RMQ_RK_RES: cmdb.resource
+      RMQ_RK_USER_LOG: ""
+      RMQ_URL_OP_LOG: amqp://user:password@ftcloud-rabbitmq:5672/
+      RMQ_URL_RES: amqp://user:password@ftcloud-rabbitmq:5672/
+      RMQ_URL_USER_LOG: amqp://user:password@ftcloud-rabbitmq:5672/
+    image: '172.16.71.10:15005/cmp/cmdb/futong-cmdb-resource:v1.6.5'
+    ports:
+    - 10007:10007
+    volumes:
+    - /var/log/ftcloud/cmdb/cmdb_resource/logs:/ftcloud/cmdb/cmdb_resource/logs:rw,Z
+  futong-cmdb-scene:
+    deploy:
+      labels:
+      - traefik.enable=true
+      - traefik.http.routers.cmdb.entrypoints=websecure
+      - traefik.http.routers.cmdb.rule=Host(`172.16.71.20`) && PathPrefix(`/ws/cmdb`) && Method(`GET`,`POST`,`PUT`,`DELETE`,`PATCH`)
+      - traefik.http.middlewares.cmdb.compress=true
+      - traefik.http.routers.cmdb.tls=true
+      - traefik.http.services.cmdb.loadbalancer.server.port=10008
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      API_URL_GET_ALERT_INFO: http://futong-yw-monitor-service:18006/api/v1/yw/ftmonitor/alert/events
+      API_URL_GET_USER_INFO_BY_TOKEN: http://futong-yy-sso:5011/auth/check/token
+      APP_NAME: cmdb_scene
+      APP_RUN_MODE: production
+      BINLOG_FIRST_FILENAME: mysqld-bin.000001
+      CONSUL_ADDRESS: ftcloud-consul:8500
+      CONSUL_REGISTER_ADDRESS: futong-cmdb-scene
+      CONSUL_REGISTER_ID: futong-cmdb-scene
+      CONSUL_REGISTER_NAME: futong-cmdb-scene
+      CONSUL_REGISTER_PORT: 10008
+      CONSUL_REGISTER_ROUTE_PATH: /check/cmdb-scene
+      CONSUL_REGISTER_TAG: futong-cmdb-scene
+      FLAG_SETTING_FROM_ENV: exist
+      HTTP_IP: 0.0.0.0
+      HTTP_PORT: 10008
+      LOG_FILE: logs/cmdb_scene.log
+      LOG_LEVEL: debug
+      MONGO_DB_NAME: cmdb
+      MONGO_MAX_CONN_IDLE_TIME: 5
+      MONGO_MAX_POOL_SIZE: 1000
+      MONGO_PWD: Ft_Mongo_123
+      MONGO_RUN_MODE: replica_set
+      MONGO_URI_REPLICA_SET: mongodb://ftcloud-mongo1:27017,ftcloud-mongo2:27018,ftcloud-mongo3:27019/?replicaSet=myset
+      MONGO_URI_SINGLE: mongodb://mongodb.service.ftcloud:27016/
+      MONGO_USER: root
+      MYSQL_DATABASE: mycat_futong_db
+      MYSQL_FLAVOR: mariadb
+      MYSQL_HOST: ftcloud-mysql
+      MYSQL_MAX_IDLE_CONNS: 100
+      MYSQL_MAX_OPEN_CONNS: 1000
+      MYSQL_PASSWORD: FuTongde1gesjk
+      MYSQL_PORT: 3306
+      MYSQL_TIMEOUT: 1m30s
+      MYSQL_USER_NAME: root
+      RMQ_EXCHANGE_ALERT: exchange_alert
+      RMQ_EXCHANGE_OP_LOG: exchange_cmdb
+      RMQ_EXCHANGE_TYPE_ALERT: fanout
+      RMQ_EXCHANGE_TYPE_OP_LOG: topic
+      RMQ_EXCHANGE_TYPE_USER_LOG: direct
+      RMQ_EXCHANGE_USER_LOG: CMP_EXCHANGE
+      RMQ_PREFETCH_COUNT_ALERT: 1
+      RMQ_PREFETCH_COUNT_OP_LOG: 1
+      RMQ_PREFETCH_COUNT_USER_LOG: 1
+      RMQ_QUEUE_ALERT: queue_cmdb_alert
+      RMQ_QUEUE_OP_LOG: queue_cmdb_oplog
+      RMQ_QUEUE_USER_LOG: QUEUE_CMP2020_LOGS
+      RMQ_RK_ALERT: ""
+      RMQ_RK_OP_LOG: cmdb.oplog
+      RMQ_RK_USER_LOG: ""
+      RMQ_URL_ALERT: amqp://user:password@ftcloud-rabbitmq:5672/
+      RMQ_URL_OP_LOG: amqp://user:password@ftcloud-rabbitmq:5672/
+      RMQ_URL_USER_LOG: amqp://user:password@ftcloud-rabbitmq:5672/
+    image: '172.16.71.10:15005/cmp/cmdb/futong-cmdb-scene:v1.6.5'
+    volumes:
+    - /var/log/ftcloud/cmdb/cmdb_scene/logs:/ftcloud/cmdb/cmdb_scene/logs:rw,Z

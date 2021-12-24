@@ -1,0 +1,40 @@
+server:
+  port: 30025
+spring:
+  application:
+    name: futong-zy-objectstorage
+  cloud:
+    config:
+      discovery:
+        serviceId: futong-public-config
+        enabled: true
+      name: application-common,application-mysql,application-mybatis-plus,application-redis,application-xxlJob,application-rabbitmq
+      fail-fast: true
+    consul:
+      discovery:
+        instance-id: ${spring.application.name}:${server.port}
+        prefer-ip-address: false
+        health-check-url: http://${spring.application.name}:${server.port}/actuator/health
+        health-check-interval: 10s
+        hostname: ${spring.application.name}
+        service-name: ${spring.application.name}
+        enabled: true
+      host: ftcloud-consul
+      port: 8500
+  messages:
+    basename: i18n/message,i18n/sso,i18n/ucenter,i18n/operation,i18n/resource,i18n/audit
+  aop:
+    auto: true
+  rabbitmq:
+    listener:
+      direct:
+         #一次只往给消费者一条数据
+        prefetch: 1
+        #拒绝的消息是否重新放回队列。默认值为true
+        default-requeue-rejected: false
+
+catalog:
+  service:
+    url: futong-yw-blueprint
+    port: 11001
+

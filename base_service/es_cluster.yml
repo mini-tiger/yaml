@@ -1,0 +1,107 @@
+version: '3.7'
+services:
+  ftcloud-es:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "9200:9200"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-es
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role==manager
+
+  ftcloud-es1:
+    image: 172.16.71.10:15005/public/elasticsearch:7.6.2-hc
+    environment:
+      - node.name=ftcloud-es1
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=ftcloud-es2,ftcloud-es3
+      - cluster.initial_master_nodes=ftcloud-es1,ftcloud-es2,ftcloud-es3
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+      - FTHC_SERVICE_NAME=ftcloud-es1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /data/es:/usr/share/elasticsearch/data
+      - /var/log/elasticsearch:/usr/share/elasticsearch/logs
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.es.entrypoints=es
+        - traefik.http.routers.es.rule=PathPrefix(`/`)
+        - traefik.http.services.es.loadbalancer.server.port=9200
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm1
+
+  ftcloud-es2:
+    image: 172.16.71.10:15005/public/elasticsearch:7.6.2-hc
+    environment:
+      - node.name=ftcloud-es2
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=ftcloud-es1,ftcloud-es3
+      - cluster.initial_master_nodes=ftcloud-es1,ftcloud-es2,ftcloud-es3
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+      - FTHC_SERVICE_NAME=ftcloud-es2
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /data/es:/usr/share/elasticsearch/data
+      - /var/log/elasticsearch:/usr/share/elasticsearch/logs
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.es.entrypoints=es
+        - traefik.http.routers.es.rule=PathPrefix(`/`)
+        - traefik.http.services.es.loadbalancer.server.port=9200
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm2
+
+  ftcloud-es3:
+    image: 172.16.71.10:15005/public/elasticsearch:7.6.2-hc
+    environment:
+      - node.name=ftcloud-es3
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=ftcloud-es1,ftcloud-es2
+      - cluster.initial_master_nodes=ftcloud-es1,ftcloud-es2,ftcloud-es3
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
+      - FTHC_SERVICE_NAME=ftcloud-es3
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /data/es:/usr/share/elasticsearch/data
+      - /var/log/elasticsearch:/usr/share/elasticsearch/logs
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.es.entrypoints=es
+        - traefik.http.routers.es.rule=PathPrefix(`/`)
+        - traefik.http.services.es.loadbalancer.server.port=9200
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm3

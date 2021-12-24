@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  futong-public-zuul:
+    image: 119.254.93.246:15005/operation/futong-public-zuul:all
+    ports:
+      - "5010:5010"
+    volumes:
+      - /etc/ftcloud/public/zuul:/etc/ftcloud/public/zuul
+      - /var/log/ftcloud/public/zuul:/var/log/ftcloud/public/zuul
+    container_name: futong-public-zuul
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

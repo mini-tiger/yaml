@@ -1,0 +1,8 @@
+spring:
+  redis:
+    host: ftcloud-redis
+    port: 6379
+    timeout: 10000
+    max_wait: 10000
+    max_idle: 5
+    max_active: 500

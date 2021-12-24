@@ -1,0 +1,76 @@
+version: "3"
+services:
+  futong-yy-audit:
+    container_name: futong-yy-audit
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/futong-yy-audit:v1.6.5'
+    network_mode: host
+    ports:
+    - 5016:5016
+    volumes:
+    - /etc/ftcloud/yy/audit:/etc/ftcloud/yy/audit
+    - /var/log/ftcloud/yy/audit:/logs/futong-cm-audit
+  futong-yy-operation:
+    container_name: futong-yy-operation
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/futong-yy-operation:v1.6.5'
+    network_mode: host
+    ports:
+    - 5013:5013
+    volumes:
+    - /etc/ftcloud/yy/operation:/etc/ftcloud/yy/operation
+    - /var/log/ftcloud/yy/operation:/logs/futong-cm-operation
+  futong-yy-report:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/futong-yy-report:v1.6.5'
+    ports:
+    - 5020:5020
+    volumes:
+    - /etc/ftcloud/yy/report:/etc/ftcloud/yy/report
+    - /var/log/ftcloud/yy/report:/logs/futong-cm-report
+  futong-yy-sso:
+    container_name: futong-yy-sso
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/futong-yy-sso:v1.6.5'
+    network_mode: host
+    ports:
+    - 5011:5011
+    volumes:
+    - /etc/ftcloud/yy/sso:/etc/ftcloud/yy/sso
+    - /var/log/ftcloud/yy/sso:/logs/futong-cm-sso
+  futong-yy-ucenter:
+    container_name: futong-yy-ucenter
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/futong-yy-ucenter:v1.6.5'
+    network_mode: host
+    ports:
+    - 5012:5012
+    volumes:
+    - /etc/ftcloud/yy/ucenter:/etc/ftcloud/yy/ucenter
+    - /var/log/ftcloud/yy/ucenter:/logs/futong-cm-ucenter
+  futong-yy-ureport:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/futong-ureport-cmp:v1.6.5'
+    ports:
+    - 5022:5022
+    volumes:
+    - /etc/ftcloud/yy/ureport:/etc/ftcloud/yy/ureport
+    - /var/log/ftcloud/yy/ureport:/logs/futong-ureport-cmp

@@ -1,0 +1,159 @@
+version: '3.7'
+services:
+  ftcloud-mysql:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "3306:3306"
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-mysql
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+#    networks:
+#      - ftcloud_default
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  mysql1:
+    labels:
+      - ftservice=mysql
+    image: 172.16.71.10:15005/public/db-cluster:10.5.9-hc
+    hostname: mysql1
+    environment:
+      - node1=mysql1
+      - node2=mysql2
+      - node3=mysql3
+      - mysql_root_password=FuTongde1gesjk
+      - safe_to_bootstrap=1
+      - my_event_scheduler=ON
+      - my_explicit_defaults_for_timestamp=ON
+      - my_max_connections=1000
+      - FTHC_SERVICE_NAME=mysql1
+      - FTHC_MYSQL_PASSWORD=FuTongde1gesjk
+    volumes:
+      - /data/mysql:/data/mariadb-galera
+      - /etc/mysql:/etc/mysql
+      - /var/log/mysql:/var/log/mysql
+#    networks:
+#      - ftcloud_default
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.mysql.entrypoints=mysql
+        - traefik.tcp.routers.mysql.rule=HostSNI(`*`)
+        - traefik.tcp.routers.mysql.service=mysql
+        - traefik.tcp.services.mysql.loadbalancer.server.port=3306
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  mysql2:
+    labels:
+      - ftservice=mysql
+    image: 172.16.71.10:15005/public/db-cluster:10.5.9-hc
+    hostname: mysql2
+    environment:
+      - node1=mysql1
+      - node2=mysql2
+      - node3=mysql3
+      - mysql_root_password=FuTongde1gesjk
+      - my_event_scheduler=ON
+      - my_explicit_defaults_for_timestamp=ON
+      - my_max_connections=1000
+      - FTHC_SERVICE_NAME=mysql2
+      - FTHC_MYSQL_PASSWORD=FuTongde1gesjk
+    volumes:
+      - /data/mysql:/data/mariadb-galera
+      - /etc/mysql:/etc/mysql
+      - /var/log/mysql:/var/log/mysql
+#    networks:
+#      - ftcloud_default
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.mysql.entrypoints=mysql
+        - traefik.tcp.routers.mysql.rule=HostSNI(`*`)
+        - traefik.tcp.routers.mysql.service=mysql
+        - traefik.tcp.services.mysql.loadbalancer.server.port=3306
+      replicas: 1
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+  mysql3:
+    labels:
+      - ftservice=mysql
+    image: 172.16.71.10:15005/public/db-cluster:10.5.9-hc
+    hostname: mysql3
+    environment:
+      - node1=mysql1
+      - node2=mysql2
+      - node3=mysql3
+      - mysql_root_password=FuTongde1gesjk
+      - my_event_scheduler=ON
+      - my_explicit_defaults_for_timestamp=ON
+      - my_max_connections=1000
+      - FTHC_SERVICE_NAME=mysql3
+      - FTHC_MYSQL_PASSWORD=FuTongde1gesjk
+    volumes:
+      - /data/mysql:/data/mariadb-galera
+      - /etc/mysql:/etc/mysql
+      - /var/log/mysql:/var/log/mysql
+#    networks:
+#      - ftcloud_default
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.mysql.entrypoints=mysql
+        - traefik.tcp.routers.mysql.rule=HostSNI(`*`)
+        - traefik.tcp.routers.mysql.service=mysql
+        - traefik.tcp.services.mysql.loadbalancer.server.port=3306
+      replicas: 1
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+      placement:
+        constraints:
+          - node.hostname == swarm3
+
+  mysql-arbitrator:
+    labels:
+      - ftservice=mysql
+    hostname: mysql-arbitrator
+    image: 172.16.71.10:15005/public/db-cluster:10.5.9-hc
+    entrypoint: /garb-entrypoint.sh
+    command: start
+#    networks:
+#      - ftcloud_default
+    volumes:
+      - /var/log/mysql:/var/log/mysql
+    deploy:
+      endpoint_mode: dnsrr
+      placement:
+        constraints:
+          - node.hostname == swarm4
+
+#networks:
+#  ftcloud_default:
+#    external: true

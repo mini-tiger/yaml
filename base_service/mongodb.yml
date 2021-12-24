@@ -1,0 +1,77 @@
+version: '3.7'
+services:
+  ftcloud-mongo1:
+    image: "172.16.71.10:15005/public/mongo:4.2.0-hc"
+    ports:
+      - 27017:27017
+    volumes:
+      - /data/mongo:/data/db
+      - /etc/mongodb/keyfile:/etc/mongodb/keyfile
+      - /var/log/mongodb:/var/log/mongodb
+      - /etc/mongodb/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-mongo1
+      - FTHC_MONGO_ADDRESS=mongodb://ftcloud-mongo1:27017/?replicaSet=myset
+    command: mongod --replSet myset --dbpath /data/db --bind_ip_all --port 27017 --keyFile /etc/mongodb/keyfile/mongodb-keyfile --auth
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm1
+
+  ftcloud-mongo2:
+    image: "172.16.71.10:15005/public/mongo:4.2.0-hc"
+    ports:
+      - 27018:27018
+    volumes:
+      - /data/mongo:/data/db
+      - /etc/mongodb/keyfile:/etc/mongodb/keyfile
+      - /var/log/mongodb:/var/log/mongodb
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-mongo2
+      - FTHC_MONGO_ADDRESS=mongodb://ftcloud-mongo2:27018/?replicaSet=myset
+    command: mongod --replSet myset --dbpath /data/db --bind_ip_all --port 27018 --keyFile /etc/mongodb/keyfile/mongodb-keyfile --auth
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm2
+
+  ftcloud-mongo3:
+    image: "172.16.71.10:15005/public/mongo:4.2.0-hc"
+    ports:
+      - 27019:27019
+    volumes:
+      - /data/mongo:/data/db
+      - /etc/mongodb/keyfile:/etc/mongodb/keyfile
+      - /var/log/mongodb:/var/log/mongodb
+    command: mongod --replSet myset --dbpath /data/db --bind_ip_all --port 27019 --keyFile /etc/mongodb/keyfile/mongodb-keyfile --auth
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-mongo3
+      - FTHC_MONGO_ADDRESS=mongodb://ftcloud-mongo3:27019/?replicaSet=myset
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname==swarm3
+
+  ftcloud-mongo4:
+    image: "172.16.71.10:15005/public/mongo:4.2.0-hc"
+    ports:
+      - 27020:27020
+    volumes:
+      - /etc/mongodb/keyfile:/etc/mongodb/keyfile
+    command: mongod --replSet myset --dbpath /data/db --bind_ip_all --port 27020 --keyFile /etc/mongodb/keyfile/mongodb-keyfile --auth
+    environment:
+      - FTHC_SERVICE_NAME=normal
+      - FTHC_CHECK_PORT=27020
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

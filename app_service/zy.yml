@@ -1,0 +1,214 @@
+version: "3.7"
+services:
+  futong-zy-aggregation:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-aggregation:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/aggregation:/etc/ftcloud/zy/aggregation
+    - /var/log/ftcloud/zy/aggregation:/var/log/ftcloud/zy/aggregation
+  futong-zy-cms:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-cms:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/cms:/etc/ftcloud/zy/cms
+    - /var/log/ftcloud/zy/cms:/logs/futong-cm-resource-cms
+  futong-zy-compute:
+    deploy:
+      labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.compute.compress=true
+      - traefik.http.routers.compute.entrypoints=websecure
+      - traefik.http.routers.compute.rule=Host(`172.16.71.20`) && PathPrefix(`/guacamole/tunnel`) && Method(`GET`,`POST`,`PUT`,`DELETE`,`PATCH`)
+      - traefik.http.routers.compute.tls=true
+      - traefik.http.services.compute.loadbalancer.server.port=30011
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-compute:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/compute:/etc/ftcloud/zy/compute
+    - /var/log/ftcloud/zy/compute:/var/log/ftcloud/zy/compute
+  futong-zy-dss:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-vcollection-dss:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-dss/application.yml:/opt/application.yml
+    - /var/log/ftcloud/zy/futong-zy-dss:/home/itgo-devops/cloud/dss/log
+    - /etc/localtime:/etc/localtime
+  futong-zy-esi:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-esi:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/esi:/etc/ftcloud/zy/esi
+    - /var/log/ftcloud/zy/esi:/var/log/ftcloud/zy/esi
+  futong-zy-guacd:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+    - GUACD_LOG_LEVEL=info
+    - FTHC_SERVICE_NAME=guacd
+    - FTHC_CHECK_PORT=4822
+    - FTHC_LISTEN_PORT=15558
+    image: '172.16.71.10:15005/public/futong-cm-resource-guacd:1.0.0-hc'
+    ports:
+    - 4822:4822
+    volumes:
+    - /var/log/ftcloud/zy/guacd:/home/video:rw,Z
+  futong-zy-h3c:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-h3c:v1.6.5'
+    ports:
+    - 30032:30032
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-h3c/application.yml:/opt/application.yml
+    - /etc/ftcloud/zy/futong-zy-h3c/logback.xml:/opt/logback.xml
+    - /var/log/ftcloud/zy/futong-zy-h3c:/home/itgo-devops/logs
+  futong-zy-hprivate:
+    container_name: futong-zy-hprivate
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-hprivate:v1.6.5'
+    ports:
+    - 30050:30050
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-hprivate/application.yml:/opt/application.yml
+    - /var/log/ftcloud/zy/futong-zy-hprivate:/home/itgo-devops/cloud/web/log
+    - /etc/localtime:/etc/localtime
+  futong-zy-log:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-log:v1.6.5'
+    ports:
+    - 30099:30099
+    volumes:
+    - /etc/ftcloud/zy/log:/etc/ftcloud/zy/log
+    - /var/log/ftcloud/zy/log:/var/log/ftcloud/zy/log
+  futong-zy-nat:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-nat:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/nat:/etc/ftcloud/zy/nat
+    - /var/log/ftcloud/zy/nat:/var/log/ftcloud/zy/nat
+  futong-zy-network:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-network:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/network:/etc/ftcloud/zy/network
+    - /var/log/ftcloud/zy/network:/var/log/ftcloud/zy/network
+  futong-zy-objectstorage:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-objectstorage:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/objectstorage:/etc/ftcloud/zy/objectstorage
+    - /var/log/ftcloud/zy/objectstorage:/var/log/ftcloud/zy/objectstorage
+  futong-zy-openstack:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-openstack:v1.6.5'
+    ports:
+    - 30081:30081
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-openstack/application.yml:/opt/application.yml
+    - /var/log/ftcloud/zy/futong-zy-openstack:/home/itgo-devops/cloud/openstack_collector/log:rw,Z
+  futong-zy-rds:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-rds:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/rds:/etc/ftcloud/zy/rds
+    - /var/log/ftcloud/zy/rds:/var/log/ftcloud/zy/rds
+  futong-zy-routetable:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-routetable:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/routetable:/etc/ftcloud/zy/routetable
+    - /var/log/ftcloud/zy/routetable:/var/log/ftcloud/zy/routetable
+  futong-zy-vcollection-cs2:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-vcollection-cs2:v1.6.5'
+    ports:
+    - 30091:30091
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-vcollection-cs2/application.yml:/opt/application.yml
+    - /var/log/ftcloud/zy/futong-zy-vcollection-cs2:/home/itgo-devops/cloud/cs2_collector/log
+    - /etc/localtime:/etc/localtime
+  futong-zy-vcollection-huawei:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-vcollection-huawei:v1.6.5'
+    ports:
+    - 30061:30061
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-vcollection-huawei/application.yml:/opt/application.yml
+    - /var/log/ftcloud/zy/futong-zy-vcollection-huawei:/home/itgo-devops/cloud/fc_collector/log:rw,Z
+  futong-zy-vcollection-vmware:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-vcollection-vmware:v1.6.5'
+    ports:
+    - 30071:30071
+    restart: unless-stopped
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-vcollection-vmware/application.yml:/opt/application.yml
+    - /var/log/ftcloud/zy/futong-zy-vcollection-vmware:/home/itgo-devops/cloud/vmware_collector/log
+    - /etc/localtime:/etc/localtime
+  futong-zy-vreport:
+    deploy:
+      labels:
+      - traefik.enable=true
+      - traefik.http.routers.vreport.entrypoints=websecure
+      - traefik.http.routers.vreport.rule=Host(`172.16.71.20`) && PathPrefix(`/ureport`) && Method(`GET`,`POST`,`PUT`,`DELETE`,`PATCH`)
+      - traefik.http.routers.vreport.tls=true
+      - traefik.http.services.vreport.loadbalancer.server.port=18081
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/zy/futong-zy-vreport:v1.6.5'
+    volumes:
+    - /etc/ftcloud/zy/futong-zy-vreport/application.yml:/home/itgo-report/application.yml
+    - /var/log/ftcloud/zy/futong-zy-vreport:/home/itgo-report/cloud/report/log
+    - /etc/localtime:/etc/localtime

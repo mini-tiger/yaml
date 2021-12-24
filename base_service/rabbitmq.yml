@@ -1,0 +1,135 @@
+version: "3.7"
+
+services:
+  ftcloud-rabbitmq:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-rabbitmq
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role==manager
+
+  rabbit1:
+    labels:
+      - ftservice=rabbit
+    image: 172.16.71.10:15005/public/rabbitmq:3.8.13-tracing-hc
+    volumes:
+      - /data/rabbitmq:/var/lib/rabbitmq
+      - /etc/rabbitmq/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - /etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - /etc/rabbitmq/advanced.config:/etc/rabbitmq/advanced.config
+      - /var/log/rabbitmq:/var/log/rabbitmq
+    environment:
+      - RABBITMQ_NODENAME=rabbitmq
+      - RABBITMQ_LOGS=/var/log/rabbitmq/rabbitmq.log
+      - FTHC_SERVICE_NAME=rabbit1
+      - FTHC_MQ_HOST=rabbit1
+    hostname: rabbit1
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.rabbit.entrypoints=rabbit
+        - traefik.tcp.routers.rabbit.rule=HostSNI(`*`)
+        - traefik.tcp.routers.rabbit.service=rabbitmq
+        - traefik.tcp.services.rabbitmq.loadbalancer.server.port=5672
+        - traefik.http.routers.rabbit.entrypoints=rabbitui
+        - traefik.http.routers.rabbit.rule=PathPrefix(`/`)
+        - traefik.http.services.rabbitmq.loadbalancer.server.port=15672
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  rabbit2:
+    labels:
+      - ftservice=rabbit
+    image: 172.16.71.10:15005/public/rabbitmq:3.8.13-tracing-hc
+    volumes:
+      - /data/rabbitmq:/var/lib/rabbitmq
+      - /etc/rabbitmq/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - /etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - /etc/rabbitmq/advanced.config:/etc/rabbitmq/advanced.config
+      - /var/log/rabbitmq:/var/log/rabbitmq
+    environment:
+      - RABBITMQ_NODENAME=rabbitmq
+      - RABBITMQ_LOGS=/var/log/rabbitmq/rabbitmq.log
+      - FTHC_SERVICE_NAME=rabbit2
+      - FTHC_MQ_HOST=rabbit2
+    hostname: rabbit2
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.rabbit.entrypoints=rabbit
+        - traefik.tcp.routers.rabbit.rule=HostSNI(`*`)
+        - traefik.tcp.routers.rabbit.service=rabbitmq
+        - traefik.tcp.services.rabbitmq.loadbalancer.server.port=5672
+        - traefik.http.routers.rabbit.entrypoints=rabbitui
+        - traefik.http.routers.rabbit.rule=PathPrefix(`/`)
+        - traefik.http.services.rabbitmq.loadbalancer.server.port=15672
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+  rabbit3:
+    labels:
+      - ftservice=rabbit
+    image: 172.16.71.10:15005/public/rabbitmq:3.8.13-tracing-hc
+    volumes:
+      - /data/rabbitmq:/var/lib/rabbitmq
+      - /etc/rabbitmq/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie
+      - /etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - /etc/rabbitmq/advanced.config:/etc/rabbitmq/advanced.config
+      - /var/log/rabbitmq:/var/log/rabbitmq
+    environment:
+      - RABBITMQ_NODENAME=rabbitmq
+      - RABBITMQ_LOGS=/var/log/rabbitmq/rabbitmq.log
+      - FTHC_SERVICE_NAME=rabbit3
+      - FTHC_MQ_HOST=rabbit3
+    hostname: rabbit3
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.tcp.routers.rabbit.entrypoints=rabbit
+        - traefik.tcp.routers.rabbit.rule=HostSNI(`*`)
+        - traefik.tcp.routers.rabbit.service=rabbitmq
+        - traefik.tcp.services.rabbitmq.loadbalancer.server.port=5672
+        - traefik.http.routers.rabbit.entrypoints=rabbitui
+        - traefik.http.routers.rabbit.rule=PathPrefix(`/`)
+        - traefik.http.services.rabbitmq.loadbalancer.server.port=15672
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm3
+
+#volumes:
+#  rabbit-data:
+#    driver: local
+#
+#networks:
+#  default:
+#    driver: overlay
+#    attachable: true
+#
+networks:
+  ftcloud_default:
+    driver: overlay
+    external: true

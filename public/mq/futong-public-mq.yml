@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  futong-public-mq:
+    image: 119.254.93.246:15005/operation/futong-public-mq:all
+    ports:
+      - "6010:6010"
+    volumes:
+      - /etc/ftcloud/public/mq:/etc/ftcloud/public/mq
+      - /var/log/ftcloud/public/mq:/var/log/ftcloud/public/mq
+    container_name: futong-public-mq
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

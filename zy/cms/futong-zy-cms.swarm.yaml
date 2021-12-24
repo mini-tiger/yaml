@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  futong-zy-compute:
+    image: 119.254.93.246:15005/zy/futong-zy-cms:all
+    volumes:
+      - /etc/ftcloud/zy/cms:/etc/ftcloud/zy/cms
+      - /var/log/ftcloud/zy/cms:/var/log/ftcloud/zy/cms
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

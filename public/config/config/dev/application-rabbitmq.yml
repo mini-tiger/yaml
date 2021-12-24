@@ -1,0 +1,14 @@
+#rabbitmq配置
+spring:
+  rabbitmq:
+    host: ftcloud-rabbitmq
+    port: 5672
+    username: futong
+    password: futong@msp
+    publisher-confirms: true  #  消息发送到交换机确认机制,是否确认回调
+    publisher-returns: true
+    # 设置手动确认(ack) Queue -> C
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 100

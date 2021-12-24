@@ -1,0 +1,30 @@
+#端口配置
+server:
+  port: 30051
+
+#Mysql连接池
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      username: root
+      password: FuTongde1gesjk
+      url: jdbc:mysql://ftcloud-mysql:3306/itgo_monitor?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
+
+#mybatis-plus SQL输出
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+#es
+elasticsearch:
+  hostname: ftcloud-es
+  port: 9200
+  connTimeout : 3000
+  socketTimeout : 5000
+  connectionRequestTimeout : 500
+
+#日志打印
+#logging:
+#  config: classpath:logback-spring.xml

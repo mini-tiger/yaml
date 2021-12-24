@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  futong-zy-elb:
+    image: 119.254.93.246:15005/zy/futong-zy-elb:all
+    volumes:
+      - /etc/ftcloud/zy/elb:/etc/ftcloud/zy/elb
+      - /var/log/ftcloud/zy/elb:/var/log/ftcloud/zy/elb
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

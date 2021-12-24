@@ -1,0 +1,64 @@
+#端口
+server:
+ port: 30032
+spring:
+  application:
+    name: futong-zy-h3c
+  datasource:
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://ftcloud-mysql:3306/itgo_monitor?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    username: root
+    password: FuTongde1gesjk
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 100
+      idle-timeout: 30000
+      pool-name: DatebookHikariCP
+      max-lifetime: 120000
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  rabbitmq:
+    host: ftcloud-rabbitmq
+    port: 5672
+    username: user
+    password: password
+    publisher-confirms: true
+    publisher-returns: true
+    virtual-host: /
+    exchanges: CMP_EXCHANGE
+    hprivateQueues: QUEUE_CMP_NPRIVATE
+    hprivateRoutingKey: CMP_NPRIVATE_ROUTING
+    catalogQueues: QUE_UPDATE_CATALOG_RECORD_STATUS
+    catalogRoutingKey: QUE_UPDATE_CATALOG_RECORD_STATUS_KEY
+    taskLogQueues: QUEUE_CMP2020_LOGS
+    taskLogRoutingKey: KEY_CMP2020_LOGS
+    alarmQueues: QUEUE_CMP_ALARM_NOTICE
+    alarmRoutingKey: QUEUE_CMP_MAIL_KEY
+elasticsearch:
+  http:
+    host: ftcloud-es:9200
+  number_of_shards: 5
+  number_of_replicas: 1
+  schema: http
+  max-connect-total: 200
+  max-connect-per-route: 200
+  connection-request-timeout-millis: 500
+  socket-timeout-millis: 30000
+  connect-timeout-millis: 1000
+perf:
+  collector:
+    cycle: 5 #性能数据采集周期，单位分钟
+  retain:
+    open: 1 #是否开启性能数据裁剪，1开启、0未开启
+    detail: 150 #明细数据保留天数
+    hour: 300  #小时数据保留天数
+    day: 3000  #天数据保留天数
+#日志服务地址
+actionServer:
+   logUrl: "http://futong-public-action:30098/action"
+

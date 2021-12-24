@@ -1,0 +1,115 @@
+version: '3.7'
+services:
+  futong-yw-self-monitor:
+    image: "172.16.71.10:15005/cmp/yw/futong-yw-self-monitor:v1.3"
+    ports:
+      - "13000:3000"
+      - "13100:3100"
+      - "19090:9090"
+      - "19093:9093"
+      - "19115:9115"
+    user: '472'
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      alertmanager_group_wait: 1m
+      alertmanager_group_interval: 5m
+      alertmanager_repeat_interval: 1h
+      alertmanager_smtp_from: 'liupeng@futongcloud.com.cn'
+      alertmanager_smtp_smarthost: ''
+      alertmanager_smtp_auth_username: ''
+      alertmanager_smtp_auth_password: ''
+      alertmanager_email_to: 'yuzhao@futongcloud.com.cn'
+      prometheus_node_exporter: '172.16.71.31:9106,172.16.71.32:9106,172.16.71.33:9106,172.16.71.34:9106'
+      prometheus_traefik: 'ftcloud-traefik:8082'
+      prometheus_retention_time: 1d
+      prometheus_mysql_exporter_auth_username: 'root'
+      prometheus_mysql_exporter_auth_password: 'FuTongde1gesjk'
+      prometheus_mysql_exporter_type: cluster
+      grafana_anonymous: 'false'
+      alert_node_dwon_time: 15s
+      alert_service_dwon_time: 15s
+      alert_cpu_load: 85
+      alert_cpu_load_time: 5m
+      alert_mem_load: 85
+      alert_mem_load_time: 5m
+      alert_storage_load: 80
+      alert_storage_load_time: 5m
+      access_address: '172.16.71.20'
+      email_subject: '来自CMP多云管理 172.16.71.20 的告警信息'
+      monitor_services_list: |
+        ftcloud-traefik:15555/health,
+        ftcloud-consul:15555/health,
+        consul1:15555/health,
+        consul2:15555/health,
+        consul3:15555/health,
+        consul4:15555/health,
+        ftcloud-mysql:15555/health,
+        mysql1:15555/health,
+        mysql2:15555/health,
+        mysql3:15555/health,
+        ftcloud-es:15555/health,
+        ftcloud-es1:15555/health,
+        ftcloud-es2:15555/health,
+        ftcloud-es3:15555/health,
+        ftcloud-mongo1:15555/health,
+        ftcloud-mongo2:15555/health,
+        ftcloud-mongo3:15555/health,
+        ftcloud-mongo4:15555/health,
+        ftcloud-rabbitmq:15555/health,
+        rabbit1:15555/health,
+        rabbit2:15555/health,
+        rabbit3:15555/health,
+        ftcloud-redis:15555/health,
+        ftcloud-minio:15555/health,
+        minio1:15555/health,
+        minio2:15555/health,
+        minio3:15555/health,
+        minio4:15555/health,
+        futong-public-config:6000/actuator/health,
+        futong-public-zuul:5010/actuator/health,
+        futong-public-admin:8080/actuator/health,
+        futong-public-mq:6010/actuator/health,
+        futong-yw-blueprint:11001/health/,
+        futong-yw-report:18080/report/health,
+        futong-yw-ansible-service:14001/ansible/health/check,
+        futong-yw-injection-service:14002/devops/common/health,
+        futong-yw-zookeeper:15556/health,
+        futong-yw-kafka:15557/health,
+        futong-yw-vcollection-ali:13009/health,
+        futong-yw-analysis:13008/health,
+        futong-yw-monitor-web:13006/itm/health/check,
+        futong-yw-monitor-alarm:13007/event/health/check,
+        futong-yw-k8s:32003/ping/ftk8s-resource,
+        futong-yw-catalog:12001/health,
+        futong-cmdb-scene:10008/check/cmdb-scene,
+        futong-cmdb-model:10006/check/cmdb-model,
+        futong-cmdb-resource:10007/check/cmdb-resource,
+        futong-yy-audit:5016/actuator/health,
+        futong-yy-operation:5013/actuator/health,
+        futong-yy-sso:5011/actuator/health,
+        futong-yy-ucenter:5012/actuator/health,
+        futong-yy-report:5020/actuator/health,
+        futong-zy-aggregation:30010/actuator/health,
+        futong-zy-compute:30011/actuator/health,
+        futong-zy-esi:30013/actuator/health,
+        futong-zy-nat:30018/actuator/health,
+        futong-zy-network:30014/actuator/health,
+        futong-zy-rds:30015/actuator/health,
+        futong-zy-routetable:30024/actuator/health,
+        futong-zy-guacd:15558/health,
+        futong-zy-objectstorage:30025/actuator/health,
+        futong-zy-cms:30031/actuator/health,
+        futong-zy-log:30099/actuator/health,
+        futong-zy-h3c:30032/health,
+        futong-zy-hprivate:30050/web/health,
+        futong-zy-hprivate-picc:30050/web/health,
+        futong-zy-vcollection-vmware:30071/vmware/collector/health,
+        futong-zy-vreport:18081/report/health/check,
+        futong-zy-openstack:30081/openstack/collector/health,
+        futong-zy-vcollection-huawei:30061/fc/collector/health,
+        futong-zy-vcollection-cs2:30091/cs2/collector/health,
+        futong-zy-dss:30092/dss/health,
+

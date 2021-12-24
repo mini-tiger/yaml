@@ -1,0 +1,66 @@
+version: "3.7"
+services:
+  futong-public-action:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/public/futong-public-action:v1.6.5'
+    ports:
+    - 30098:30098
+    volumes:
+    - /etc/ftcloud/public/action:/etc/ftcloud/public/action
+    - /var/log/ftcloud/public/action:/var/log/ftcloud/public/action
+  futong-public-admin:
+    container_name: futong-public-admin
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/public/futong-public-manage:v1.6.5'
+    ports:
+    - 8080:8080
+    volumes:
+    - /etc/ftcloud/public/admin:/etc/ftcloud/public/admin
+    - /var/log/ftcloud/public/admin:/logs/futong-cm-admin
+  futong-public-config:
+    container_name: futong-public-config
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/public/futong-public-config:v1.6.5'
+    ports:
+    - 6000:6000
+    volumes:
+    - /etc/ftcloud/public/config:/etc/ftcloud/public/config
+    - /var/log/ftcloud/public/config:/logs/futong-cm-config
+  futong-public-mq:
+    container_name: futong-public-mq
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/public/futong-public-mq:v1.6.5'
+    ports:
+    - 6010:6010
+    volumes:
+    - /etc/ftcloud/public/mq:/etc/ftcloud/public/mq
+    - /var/log/ftcloud/public/mq:/logs/futong-cm-mq
+  futong-public-zuul:
+    container_name: futong-public-zuul
+    deploy:
+      labels:
+      - traefik.enable=true
+      - traefik.http.routers.zuul.entrypoints=websecure
+      - traefik.http.routers.zuul.rule=Host(`172.16.71.20`) && PathPrefix(`/api`) && Method(`GET`,`POST`,`PUT`,`DELETE`,`PATCH`)
+      - traefik.http.middlewares.zuul.compress=true
+      - traefik.http.routers.zuul.tls=true
+      - traefik.http.services.zuul.loadbalancer.server.port=5010
+      replicas: 2
+      restart_policy:
+        condition: any
+    image: '172.16.71.10:15005/cmp/yy/public/futong-public-zuul:v1.6.5'
+    volumes:
+    - /etc/ftcloud/public/zuul:/etc/ftcloud/public/zuul
+    - /var/log/ftcloud/public/zuul:/logs/futong-cm-zuul

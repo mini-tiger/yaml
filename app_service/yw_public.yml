@@ -1,0 +1,244 @@
+version: '3.7'
+services:
+  prometheus:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "9090:9090"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role==manager
+
+  prometheus1:
+    image: 172.16.71.10:15005/public/prom/prometheus:v2.16.0
+    volumes:
+      - /etc/prometheus:/etc/prometheus:rw
+      - /data/prometheus:/prometheus:rw
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+      - --storage.tsdb.min-block-duration=2h
+      - --storage.tsdb.max-block-duration=2h
+      - --storage.tsdb.retention.time=3d
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.prometheus.entrypoints=prometheus
+        - traefik.http.routers.prometheus.rule=PathPrefix(`/`)
+        - traefik.http.services.prometheus.loadbalancer.server.port=9090
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  prometheus2:
+    image: 172.16.71.10:15005/public/prom/prometheus:v2.16.0
+    volumes:
+      - /etc/prometheus:/etc/prometheus:rw
+      - /data/prometheus:/prometheus:rw
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+      - --storage.tsdb.min-block-duration=2h
+      - --storage.tsdb.max-block-duration=2h
+      - --storage.tsdb.retention.time=3d
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.prometheus.entrypoints=prometheus
+        - traefik.http.routers.prometheus.rule=PathPrefix(`/`)
+        - traefik.http.services.prometheus.loadbalancer.server.port=9090
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+  thanos-sidecar1:
+    image: 172.16.71.10:15005/public/thanosio/thanos:v0.11.0
+    volumes:
+      - /data/prometheus:/prometheus:rw
+      - /etc/prometheus/bucket_conf.yml:/bucket_conf.yml:r
+    depends_on:
+      - prometheus1
+    command:
+      - sidecar
+      - --tsdb.path=/prometheus
+      - --prometheus.url=http://prometheus1:9090
+      - --objstore.config-file=/bucket_conf.yml
+      - --http-address=0.0.0.0:19191
+      - --grpc-address=0.0.0.0:19090
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  thanos-sidecar2:
+    image: 172.16.71.10:15005/public/thanosio/thanos:v0.11.0
+    volumes:
+      - /data/prometheus:/prometheus:rw
+      - /etc/prometheus/bucket_conf.yml:/bucket_conf.yml:r
+    depends_on:
+      - prometheus2
+    command:
+      - sidecar
+      - --tsdb.path=/prometheus
+      - --prometheus.url=http://prometheus2:9090
+      - --objstore.config-file=/bucket_conf.yml
+      - --http-address=0.0.0.0:19191
+      - --grpc-address=0.0.0.0:19090
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+#  tanos-storer:
+#    image: 172.16.71.10:15005/public/thanosio/thanos:v0.11.0
+#    volumes:
+#      - /etc/prometheus/bucket_conf.yml:/bucket_conf.yml:r
+#    command:
+#      - store
+#      - --data-dir=/var/thanos/store
+#      - --objstore.config-file=/bucket_conf.yml
+#      - --http-address=0.0.0.0:19191
+#      - --grpc-address=0.0.0.0:19090
+#    depends_on:
+#      - minio1
+#      - minio2
+#      - minio3
+#      - minio4
+
+  thanos-query:
+    image: 172.16.71.10:15005/public/thanosio/thanos:v0.11.0
+    ports:
+      - "19192:19192"
+    command:
+      - query
+      - --http-address=0.0.0.0:19192
+      - --grpc-address=0.0.0.0:19092
+      - --store=thanos-sidecar1:19090
+      - --store=thanos-sidecar2:19090
+      - --store=thanos-storer:19090
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+
+#  compactor:
+#    image: 172.16.71.10:15005/public/thanosio/thanos:v0.11.0
+#    volumes:
+#      - /etc/prometheus/bucket_conf.yml:/bucket_conf.yml:r
+#    command:
+#      - compact
+#      - --data-dir=/var/thanos/compact
+#      - --objstore.config-file=/bucket_conf.yml
+#      - --http-address=0.0.0.0:19191
+#      - --wait
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: any
+
+  pushgateway:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "9091:9091"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role==manager
+
+  pushgateway1:
+    image: 172.16.71.10:15005/public/prom/pushgateway:v1.2.0
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.pushgateway.entrypoints=pushgateway
+        - traefik.http.routers.pushgateway.rule=PathPrefix(`/`)
+        - traefik.http.services.pushgateway.loadbalancer.server.port=9091
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  pushgateway2:
+    image: 172.16.71.10:15005/public/prom/pushgateway:v1.2.0
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.pushgateway.entrypoints=pushgateway
+        - traefik.http.routers.pushgateway.rule=PathPrefix(`/`)
+        - traefik.http.services.pushgateway.loadbalancer.server.port=9091
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+  alertmanager1:
+    image: 172.16.71.10:15005/public/prom/alertmanager:v0.20.0
+    ports:
+      - "9093:9093"
+    volumes:
+      - /etc/alertmanager/:/etc/alertmanager/
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --cluster.listen-address=0.0.0.0:8001
+      - --cluster.peer=alertmanager2:8001
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  alertmanager2:
+    image: 172.16.71.10:15005/public/prom/alertmanager:v0.20.0
+    volumes:
+      - /etc/alertmanager/:/etc/alertmanager/
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --cluster.listen-address=0.0.0.0:8001
+      - --cluster.peer=alertmanager1:8001
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2

@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  db-backup:
+    image: 172.16.71.10:15005/public/db-backup:v1.2
+    volumes:
+      - /data/mysql-backup:/data/mysql-backup
+    environment:
+      - DB_SERVER=ftcloud-mysql
+      - DB_USER=root
+      - DB_PASS=FuTongde1gesjk
+      - DB_DUMP_BEGIN=1700
+      - DB_DUMP_TARGET=/data/mysql-backup 
+      - DB_DUMP_SAFECHARS=true
+      - DB_DUMP_BY_SCHEMA=true
+      - EXCLOUDE_DB=reportSystem
+      - ALI_ENDPOINT_URL=
+      - ALI_ACCESS_KEY_ID=
+      - ALI_SECRET_ACCESS_KEY=
+    networks:
+      - ftcloud_default
+
+networks:
+  ftcloud_default:
+    external: true

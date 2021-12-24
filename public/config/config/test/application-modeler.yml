@@ -1,0 +1,27 @@
+spring:
+  thymeleaf:
+    mode: LEGACYHTML5
+    cache: false
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://ftcloud-mysql:3306/mycat_futong_db?useUnicode=true&characterEncoding=utf-8
+    #url: jdbc:mysql://119.254.93.248:8066/mycat_futong_db?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: FuTongde1gesjk
+    druid:
+      driver-class-name: com.mysql.jdbc.Driver
+      maxActive: 20
+      initialSize: 5
+      maxWait: 60000
+      minIdle: 5
+      timeBetweenEvictionRunsMillis: 60000 #设置执行一次连接回收器的时间
+      minEvictableIdleTimeMillis: 300000 #设置时间： 该时间内没有任何操作的空闲连接会被回收
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true # 空闲时校验
+      testOnBorrow: false # 使用中是否校验有效性
+      testOnReturn: false # 归还连接池时是否校验
+      poolPreparedStatements: true  # mysql 不推荐打开预处理连接池
+      maxOpenPreparedStatements: 20
+      filters: stat,wall,slf4j # 注意这个值和druid原生不一致，默认启动了stat,wall #stat,logback
+      connectionProperties: druid.stat.mergSql=true;druid.stat.slowSqlMillis=500  # sql合并统计 设置慢sql时间为500，超过500 会有记录提示
+

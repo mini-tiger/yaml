@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  futong-zy-esi:
+    image: 119.254.93.246:15005/zy/futong-zy-esi:all
+    volumes:
+      - /etc/ftcloud/zy/esi:/etc/ftcloud/zy/esi
+      - /var/log/ftcloud/zy/esi:/var/log/ftcloud/zy/esi
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

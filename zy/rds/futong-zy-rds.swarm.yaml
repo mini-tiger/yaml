@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  futong-zy-rds:
+    image: 119.254.93.246:15005/zy/futong-zy-rds:all
+    volumes:
+      - /etc/ftcloud/zy/rds:/etc/ftcloud/zy/rds
+      - /var/log/ftcloud/zy/rds:/var/log/ftcloud/zy/rds
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

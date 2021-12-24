@@ -1,0 +1,18 @@
+version: '3.6'
+services:
+  ftcloud-redis:
+    image: 172.16.71.10:15005/public/redis:5.0.10-hc
+    volumes:
+      - /data/redis:/data
+      - /etc/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - /var/log/redis:/var/log/redis
+    ports:
+      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-redis
+      - FTHC_REDIS_PASSWORD=Futong+123
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any

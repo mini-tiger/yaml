@@ -1,0 +1,124 @@
+version: '3.7'
+services:
+  ftcloud-consul:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "8500:8500"
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-consul
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role==manager
+
+  consul1:
+    labels:
+      - service=consul
+    image: 172.16.71.10:15005/public/consul:1.6.5-hc
+    hostname: swarm1
+    command: "agent -server -bootstrap-expect=3 -retry-join consul2 -retry-join consul3 -retry-join consul4 \
+    -log-file /var/log/consul.log -log-rotate-max-files 3 -data-dir /consul/data -client=0.0.0.0 -ui -disable-host-node-id"
+    volumes:
+      - /data/consul:/consul/data
+      - /var/log/consul:/var/log/
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - FTHC_SERVICE_NAME=consul1
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.consul.entrypoints=consul
+        - traefik.http.routers.consul.rule=PathPrefix(`/`)
+        - traefik.http.services.consul.loadbalancer.server.port=8500
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  consul2:
+    labels:
+      - service=consul
+    image: 172.16.71.10:15005/public/consul:1.6.5-hc
+    hostname: swarm2
+    command: "agent -server -bootstrap-expect=3 -retry-join consul1 -retry-join consul3 -retry-join consul4 \
+    -log-file /var/log/consul.log -log-rotate-max-files 3 -data-dir /consul/data -client=0.0.0.0 -ui -disable-host-node-id"
+    volumes:
+      - /data/consul:/consul/data
+      - /var/log/consul:/var/log/
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - FTHC_SERVICE_NAME=consul2
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.consul.entrypoints=consul
+        - traefik.http.routers.consul.rule=PathPrefix(`/`)
+        - traefik.http.services.consul.loadbalancer.server.port=8500
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+  consul3:
+    labels:
+      - service=consul
+    image: 172.16.71.10:15005/public/consul:1.6.5-hc
+    hostname: swarm3
+    command: "agent -server -bootstrap-expect=3 -retry-join consul1 -retry-join consul2 -retry-join consul4 \
+    -log-file /var/log/consul.log -log-rotate-max-files 3 -data-dir /consul/data -client=0.0.0.0 -ui -disable-host-node-id"
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - FTHC_SERVICE_NAME=consul3
+    volumes:
+      - /data/consul:/consul/data
+      - /var/log/consul:/var/log/
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.consul.entrypoints=consul
+        - traefik.http.routers.consul.rule=PathPrefix(`/`)
+        - traefik.http.services.consul.loadbalancer.server.port=8500
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm3
+
+  consul4:
+    labels:
+      - service=consul
+    image: 172.16.71.10:15005/public/consul:1.6.5-hc
+    hostname: swarm4
+    command: "agent -retry-join consul1 -retry-join consul2 -retry-join consul3 \
+    -log-file /var/log/consul.log -log-rotate-max-files 3 -data-dir /consul/data -client=0.0.0.0 -ui -disable-host-node-id"
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - FTHC_SERVICE_NAME=consul4
+    volumes:
+      - /data/consul:/consul/data
+      - /var/log/consul:/var/log/
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.consul.entrypoints=consul
+        - traefik.http.routers.consul.rule=PathPrefix(`/`)
+        - traefik.http.services.consul.loadbalancer.server.port=8500
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm4

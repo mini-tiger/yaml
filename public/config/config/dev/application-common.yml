@@ -1,0 +1,76 @@
+spring:
+  #排除 原生Druid的快速配置类 代替@SpringBootApplication(exclude = DruidDataSourceAutoConfigure.class)
+  autoconfigure:
+    exclude: com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+  #SQL打印
+  datasource:
+    dynamic:
+      p6spy: false # 默认false(不开启),建议线上关闭。
+  # 出现错误时, 直接抛出异常(便于异常统一处理，否则捕获不到404)
+  mvc:
+    throw-exception-if-no-handler-found: true
+  # 不要为工程中的资源文件建立映射
+  resources:
+    add-mappings: false
+  # 热部署支持
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+  #上传的配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB #单个文件最大值
+      max-request-size: 20MB #总上传文件最大值
+#消息相关配置
+message:
+  sms:
+    interval: 60 #发送间隔60秒
+    valid: 300 #有效时间5分钟
+  ip:
+    count: 20 #单IP发送限制20条
+    time: 3600 #单IP发送限制时间1小时
+ribbon:
+  MaxConnectionPerHost: 500 #每个host的最大连接数
+  MaxTotalConnections: 2000 #ribbon的最大连接数
+  PoolMaxThreads: 2000 #ribbon的最大工作线程数
+  ReadTimeout:  10000
+  ConnectTimeout:  10000
+  # 对当前实例的重试次数
+  MaxAutoRetries: 1
+  # 切换实例的重试次数
+  MaxAutoRetriesNextServer: 3
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 25000
+#日志设置TRACE < DEBUG < INFO < WARN < ERROR < FATAL
+logging:
+  level:
+    com: DEBUG
+
+#云同步任务时间设置
+cloud:
+  syncTask:
+    #重复任务时间间隔 分钟
+    syncInterval: 5
+    #redis中任务存活时间 天
+    ttl: 30
+
+#事件地址
+event:
+  write:
+    host: futong-public-events-agent
+    port: 17086
+  read:
+    host: futong-public-events-service
+    port: 17082
+
+#CM请求地址
+cm:
+  version: 4.7
+  apiEndpoint: http://43.248.51.232:8011/api

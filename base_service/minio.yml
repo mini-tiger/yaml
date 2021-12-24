@@ -1,0 +1,98 @@
+version: '3.7'
+services:
+  ftcloud-minio:
+    image: 172.16.71.10:15005/public/traefik:v2.4.8-hc
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/traefik/:/etc/traefik/
+      - /dev/null:/var/log/traefik/traefik.log
+      - /dev/null:/var/log/traefik/access.log
+    environment:
+      - FTHC_SERVICE_NAME=ftcloud-minio
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role==manager
+
+  minio1:
+    image: 172.16.71.10:15005/public/minio/minio:RELEASE.2021-04-06T23-11-00Z-hc
+    hostname: minio1
+    volumes:
+      - /data/minio:/export
+    environment:
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=futongfutong
+      - FTHC_SERVICE_NAME=minio1
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.minio.entrypoints=minio
+        - traefik.http.routers.minio.rule=PathPrefix(`/`)
+        - traefik.http.services.minio.loadbalancer.server.port=9000
+      placement:
+        constraints:
+          - node.hostname == swarm1
+    command: server http://minio{1...4}/export
+
+  minio2:
+    image: 172.16.71.10:15005/public/minio/minio:RELEASE.2021-04-06T23-11-00Z-hc
+    hostname: minio2
+    volumes:
+      - /data/minio:/export
+    environment:
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=futongfutong
+      - FTHC_SERVICE_NAME=minio2
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.minio.entrypoints=minio
+        - traefik.http.routers.minio.rule=PathPrefix(`/`)
+        - traefik.http.services.minio.loadbalancer.server.port=9000
+      placement:
+        constraints:
+          - node.hostname == swarm2
+    command: server http://minio{1...4}/export
+
+  minio3:
+    image: 172.16.71.10:15005/public/minio/minio:RELEASE.2021-04-06T23-11-00Z-hc
+    hostname: minio3
+    volumes:
+      - /data/minio:/export
+    environment:
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=futongfutong
+      - FTHC_SERVICE_NAME=minio3
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.minio.entrypoints=minio
+        - traefik.http.routers.minio.rule=PathPrefix(`/`)
+        - traefik.http.services.minio.loadbalancer.server.port=9000
+      placement:
+        constraints:
+          - node.hostname == swarm3
+    command: server http://minio{1...4}/export
+
+  minio4:
+    image: 172.16.71.10:15005/public/minio/minio:RELEASE.2021-04-06T23-11-00Z-hc
+    hostname: minio4
+    volumes:
+      - /data/minio:/export
+    environment:
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=futongfutong
+      - FTHC_SERVICE_NAME=minio4
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.minio.entrypoints=minio
+        - traefik.http.routers.minio.rule=PathPrefix(`/`)
+        - traefik.http.services.minio.loadbalancer.server.port=9000
+      placement:
+        constraints:
+          - node.hostname == swarm4
+    command: server http://minio{1...4}/export

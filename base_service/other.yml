@@ -1,0 +1,101 @@
+version: '3.7'
+services:
+  portainer:
+    image: 172.16.71.10:15005/public/portainer/portainer:1.23.2
+    command: -H "tcp://tasks.portainer-agent:9001" --tlsskipverify
+    ports:
+      - "9009:9000"
+    volumes:
+      - /data/portainer:/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role == manager
+
+  portainer-agent:
+    image: 172.16.71.10:15005/public/portainer/agent:1.5.1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    deploy:
+      restart_policy:
+        condition: any
+      mode: global
+
+  phpmyadmin:
+    image: 172.16.71.10:15005/public/phpmyadmin/phpmyadmin:5.0.2
+    ports:
+      - "18086:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=ftcloud-mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=FuTongde1gesjk
+      - MYSQL_ROOT_PASSWORD=FuTongde1gesjk
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role == manager
+
+  whoami1:
+    image: 172.16.71.10:15005/public/containous/whoami:v1.5.0
+    labels:
+      - ftservice=whoami
+    ports:
+      - "40001:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm1
+
+  whoami2:
+    image: 172.16.71.10:15005/public/containous/whoami:v1.5.0
+    labels:
+      - ftservice=whoami
+    ports:
+      - "40002:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm2
+
+  whoami3:
+    image: 172.16.71.10:15005/public/containous/whoami:v1.5.0
+    labels:
+      - ftservice=whoami
+    ports:
+      - "40003:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm3
+
+  whoami4:
+    image: 172.16.71.10:15005/public/containous/whoami:v1.5.0
+    labels:
+      - ftservice=whoami
+    ports:
+      - "40004:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.hostname == swarm4
+

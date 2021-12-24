@@ -1,0 +1,12 @@
+
+version: '3.7'
+services:
+  futong-zy-aggregation:
+    image: 119.254.93.246:15005/zy/futong-zy-aggregation:all
+    volumes:
+      - /etc/ftcloud/zy/aggregation:/etc/ftcloud/zy/aggregation
+      - /var/log/ftcloud/zy/aggregation:/var/log/ftcloud/zy/aggregation
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
